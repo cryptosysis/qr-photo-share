@@ -13,7 +13,7 @@ body {
 /* BACKGROUND */
 body {
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #1e1e1f, #e9e8eb);
     background-attachment: fixed;
     text-align: center;
     color: #333;
