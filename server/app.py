@@ -1,24 +1,22 @@
 from flask import Flask, send_from_directory, request, redirect, session
 import os
-import qrcode
 from datetime import datetime
+import qrcode
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret-key"
 
-# ---------------- PATH SETUP ----------------
+# -------- PATHS --------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 PHOTO_FOLDER = os.path.join(BASE_DIR, "..", "Photos")
 QR_FOLDER = os.path.join(BASE_DIR, "..", "qr")
 LOG_FILE = os.path.join(BASE_DIR, "..", "download_logs.txt")
 
 os.makedirs(QR_FOLDER, exist_ok=True)
 
-# Public URL (used ONLY for QR)
 GALLERY_URL = "https://qr-photo-share.onrender.com"
 
-# ---------------- NAME ENTRY ----------------
+# -------- NAME ENTRY --------
 
 
 @app.route("/enter-name", methods=["GET", "POST"])
@@ -27,7 +25,7 @@ def enter_name():
         name = request.form.get("guest_name")
         if name:
             session["guest_name"] = name.strip()
-            return redirect("/")
+            return redirect("/categories")
 
     return """
     <html>
@@ -48,7 +46,7 @@ def enter_name():
                 <button type="submit"
                         style="padding:12px 22px;font-size:16px;border-radius:12px;
                                border:none;background:#667eea;color:white;cursor:pointer;">
-                    Enter Gallery
+                    Continue
                 </button>
             </form>
         </div>
@@ -57,28 +55,79 @@ def enter_name():
     </html>
     """
 
-# ---------------- GALLERY ----------------
+# -------- CATEGORY LIST --------
 
 
-@app.route("/")
-def gallery():
+@app.route("/categories")
+def categories():
     if "guest_name" not in session:
         return redirect("/enter-name")
 
-    guest_name = session.get("guest_name", "Guest")
-    images = os.listdir(PHOTO_FOLDER)
+    guest = session["guest_name"]
+
+    category_folders = [
+        f for f in os.listdir(PHOTO_FOLDER)
+        if os.path.isdir(os.path.join(PHOTO_FOLDER, f))
+    ]
 
     html = f"""
     <html>
     <head>
-        <title>Event Photo Gallery</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/static/style.css?v=7">
+        <title>Choose Category</title>
+        <link rel="stylesheet" href="/static/style.css?v=9">
     </head>
     <body>
 
-        <h1>Event Photo Gallery</h1>
-        <p class="subtitle">Welcome, {guest_name} 👋 — browse and download your photos</p>
+        <h1>Welcome, {guest} 👋</h1>
+        <p class="subtitle">Select a category to view photos</p>
+
+        <div class="container">
+            <div class="gallery">
+    """
+
+    for cat in category_folders:
+        html += f"""
+        <div class="card">
+            <a href="/category/{cat}" style="padding:30px;font-size:18px;">
+                {cat.replace("_", " ")}
+            </a>
+        </div>
+        """
+
+    html += """
+            </div>
+        </div>
+
+    </body>
+    </html>
+    """
+
+    return html
+
+# -------- CATEGORY GALLERY --------
+
+
+@app.route("/category/<category>")
+def category_gallery(category):
+    if "guest_name" not in session:
+        return redirect("/enter-name")
+
+    category_path = os.path.join(PHOTO_FOLDER, category)
+
+    if not os.path.exists(category_path):
+        return "Category not found", 404
+
+    images = os.listdir(category_path)
+
+    html = f"""
+    <html>
+    <head>
+        <title>{category}</title>
+        <link rel="stylesheet" href="/static/style.css?v=9">
+    </head>
+    <body>
+
+        <h1>{category.replace("_", " ")}</h1>
 
         <div class="container">
             <div class="gallery">
@@ -88,17 +137,13 @@ def gallery():
         if img.lower().endswith((".jpg", ".png", ".jpeg")):
             html += f"""
             <div class="card">
-                <img src="/photos/{img}">
-                <a href="/download/{img}">Download</a>
+                <img src="/photos/{category}/{img}">
+                <a href="/download/{category}/{img}">Download</a>
             </div>
             """
 
     html += """
             </div>
-        </div>
-
-        <div class="footer">
-            © Photo Share · Access via QR Code
         </div>
 
     </body>
@@ -107,42 +152,43 @@ def gallery():
 
     return html
 
-# ---------------- FILE SERVING ----------------
+# -------- SERVE FILES --------
 
 
-@app.route("/photos/<filename>")
-def serve_photo(filename):
-    return send_from_directory(PHOTO_FOLDER, filename)
+@app.route("/photos/<category>/<filename>")
+def serve_photo(category, filename):
+    return send_from_directory(os.path.join(PHOTO_FOLDER, category), filename)
 
-# ---------------- DOWNLOAD + LOG ----------------
+# -------- DOWNLOAD + LOG --------
 
 
-@app.route("/download/<filename>")
-def download_photo(filename):
+@app.route("/download/<category>/<filename>")
+def download_photo(category, filename):
     ip = request.remote_addr
-    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     guest = session.get("guest_name", "Unknown")
+    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     with open(LOG_FILE, "a") as log:
-        log.write(f"{time} | {guest} | {ip} | {filename}\n")
+        log.write(f"{time} | {guest} | {category} | {filename} | {ip}\n")
 
-    return send_from_directory(PHOTO_FOLDER, filename, as_attachment=True)
+    return send_from_directory(
+        os.path.join(PHOTO_FOLDER, category),
+        filename,
+        as_attachment=True
+    )
 
-# ---------------- QR CODE ----------------
+# -------- QR --------
 
 
 @app.route("/qr")
 def serve_qr():
     qr_path = os.path.join(QR_FOLDER, "gallery_qr.png")
-
     if not os.path.exists(qr_path):
-        qr = qrcode.make(GALLERY_URL)
-        qr.save(qr_path)
-
+        qrcode.make(GALLERY_URL).save(qr_path)
     return send_from_directory(QR_FOLDER, "gallery_qr.png")
 
-# ---------------- RUN ----------------
+# -------- RUN --------
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000)
