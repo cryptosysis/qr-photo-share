@@ -1,55 +1,98 @@
+/* RESET */
+* {
+    box-sizing: border-box;
+}
+
 html,
 body {
     margin: 0;
+    padding: 0;
     min-height: 100%;
 }
 
+/* BACKGROUND */
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     background: linear-gradient(135deg, #667eea, #764ba2);
     background-attachment: fixed;
     text-align: center;
+    color: #333;
 }
 
+/* HEADER */
 h1 {
     color: white;
-    padding: 20px;
+    font-size: 2.8rem;
+    margin: 0;
+    padding: 30px 20px 10px;
+    letter-spacing: 1px;
 }
 
+/* SUBTEXT */
+.subtitle {
+    color: #eaeaff;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+/* MAIN CONTAINER */
 .container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: auto;
     padding: 20px;
 }
 
+/* GALLERY GRID */
 .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
 }
 
+/* PHOTO CARD */
 .card {
     background: white;
-    padding: 12px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.18);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* HOVER EFFECT */
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* IMAGE */
 .card img {
     width: 100%;
-    border-radius: 8px;
+    height: auto;
+    display: block;
 }
 
-a {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 12px;
-    background: #007bff;
+/* DOWNLOAD BUTTON */
+.card a {
+    display: block;
+    margin: 15px;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     text-decoration: none;
-    border-radius: 6px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
-a:hover {
-    background: #0056b3;
+/* BUTTON HOVER */
+.card a:hover {
+    background: linear-gradient(135deg, #5a6fe0, #6b44a8);
+    transform: scale(1.03);
+}
+
+/* FOOTER NOTE */
+.footer {
+    margin: 40px 0 20px;
+    color: #eaeaff;
+    font-size: 0.9rem;
 }

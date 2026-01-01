@@ -32,7 +32,7 @@ def gallery():
     <head>
         <title>QR Photo Share</title>
         <meta http-equiv="refresh" content="5">
-        <link rel="stylesheet" href="/static/style.css">
+        <link rel="stylesheet" href="/static/style.css?v=2">
     </head>
     <body>
 
@@ -69,6 +69,21 @@ def gallery():
 @app.route("/photos/<filename>")
 def serve_photo(filename):
     return send_from_directory(PHOTO_FOLDER, filename)
+# ------------Image Categories------------
+
+
+@app.route("/")
+def categories():
+    categories = [
+        folder for folder in os.listdir(PHOTO_FOLDER)
+        if os.path.isdir(os.path.join(PHOTO_FOLDER, folder))
+    ]
+
+
+@app.route("/category/<category>")
+def category_gallery(category):
+    category_path = os.path.join(PHOTO_FOLDER, category)
+
 
 # Download
 
