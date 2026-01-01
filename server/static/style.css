@@ -47,16 +47,19 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 30px;
+    justify-items: center;
 }
 
+
 /* PHOTO CARD */
-.card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.card img {
+    max-width: 420px;
+    margin: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
 }
+
+
 
 /* HOVER EFFECT */
 .card:hover {
