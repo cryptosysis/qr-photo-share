@@ -6,7 +6,6 @@ from datetime import datetime
 app = Flask(__name__)
 
 # ---------------- PATH SETUP ----------------
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PHOTO_FOLDER = os.path.join(BASE_DIR, "..", "Photos")
@@ -15,12 +14,10 @@ LOG_FILE = os.path.join(BASE_DIR, "..", "download_logs.txt")
 
 os.makedirs(QR_FOLDER, exist_ok=True)
 
-# --------------IP--------------
+# 🔗 Public site URL (used ONLY for QR)
 GALLERY_URL = "https://qr-photo-share.onrender.com"
 
-
 # ---------------- ROUTES ----------------
-# Gallery
 
 
 @app.route("/")
@@ -30,19 +27,16 @@ def gallery():
     html = """
     <html>
     <head>
-        <title>QR Photo Share</title>
-        <meta http-equiv="refresh" content="5">
-        <link rel="stylesheet" href="/static/style.css?v=2">
+        <title>Photo Gallery</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/static/style.css?v=5">
     </head>
     <body>
 
-    <h1>QR Photo Share</h1>
+    <h1>Event Photo Gallery</h1>
+    <p class="subtitle">Browse and download your photos below</p>
 
     <div class="container">
-        <p>Scan the QR code to access this gallery</p>
-        <img src="/qr" width="180">
-        <p><b>Gallery auto-refreshes every 5 seconds</b></p>
-
         <div class="gallery">
     """
 
@@ -59,6 +53,10 @@ def gallery():
         </div>
     </div>
 
+    <div class="footer">
+        © Photo Share · Access via QR Code
+    </div>
+
     </body>
     </html>
     """
@@ -69,23 +67,6 @@ def gallery():
 @app.route("/photos/<filename>")
 def serve_photo(filename):
     return send_from_directory(PHOTO_FOLDER, filename)
-# ------------Image Categories------------
-
-
-@app.route("/")
-def categories():
-    categories = [
-        folder for folder in os.listdir(PHOTO_FOLDER)
-        if os.path.isdir(os.path.join(PHOTO_FOLDER, folder))
-    ]
-
-
-@app.route("/category/<category>")
-def category_gallery(category):
-    category_path = os.path.join(PHOTO_FOLDER, category)
-
-
-# Download
 
 
 @app.route("/download/<filename>")
