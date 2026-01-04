@@ -225,6 +225,8 @@ def admin_upload():
             function showUploading() {{
                 document.getElementById("status").innerText = "⏳ Uploading...";
             }}
+            <ul id="file-list" style="list-style:none;padding:0;color:#333;"></ul>
+
         </script>
 
     </body>
