@@ -98,3 +98,20 @@ h1 {
     color: #eaeaff;
     font-size: 0.9rem;
 }
+
+select,
+input[type=password],
+button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    margin: 8px;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
