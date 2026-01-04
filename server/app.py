@@ -111,37 +111,39 @@ def categories():
 
     return html
 
-# ---------Upload Code-----------
+# -------ADMIN UPLOAD--------
 
 
-ADMIN_PASSWORD = "12345@@"
+ADMIN_PASSWORD = "12345"
 
 
 @app.route("/admin/upload", methods=["GET", "POST"])
 def admin_upload():
-    error = ""
+    message = ""
 
     if request.method == "POST":
         password = request.form.get("password")
         category = request.form.get("category")
-        file = request.files.get("photo")
+        files = request.files.getlist("photos")
 
         if password != ADMIN_PASSWORD:
-            error = "Wrong admin password"
+            message = "❌ Wrong admin password"
 
-        elif not file or file.filename == "":
-            error = "No file selected"
+        elif not files or files[0].filename == "":
+            message = "❌ No files selected"
 
         else:
-            filename = secure_filename(file.filename)
             category_path = os.path.join(PHOTO_FOLDER, category)
 
             if not os.path.exists(category_path):
-                error = "Invalid category"
+                message = "❌ Invalid category"
 
             else:
-                file.save(os.path.join(category_path, filename))
-                return f"<h2>Upload successful!</h2><a href='/categories'>Back to gallery</a>"
+                for file in files:
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(category_path, filename))
+
+                message = f"✅ {len(files)} photo(s) uploaded successfully"
 
     categories = [
         f for f in os.listdir(PHOTO_FOLDER)
@@ -158,29 +160,72 @@ def admin_upload():
     <head>
         <title>Admin Upload</title>
         <link rel="stylesheet" href="/static/style.css">
+        <style>
+            .drop-zone {{
+                border: 3px dashed #667eea;
+                border-radius: 15px;
+                padding: 40px;
+                text-align: center;
+                color: #667eea;
+                cursor: pointer;
+                margin-bottom: 20px;
+            }}
+            .drop-zone.dragover {{
+                background: rgba(102, 126, 234, 0.15);
+            }}
+        </style>
     </head>
     <body>
 
         <h1>Admin Upload</h1>
-        <p class="subtitle">Upload photos to a category</p>
+        <p class="subtitle">Drag & drop or select multiple photos</p>
 
         <div class="container">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" onsubmit="showUploading()">
 
-                <input type="password" name="password"
-                       placeholder="Admin password" required><br><br>
+                <input type="password" name="password" placeholder="Admin password" required><br><br>
 
                 <select name="category" required>
                     {options}
                 </select><br><br>
 
-                <input type="file" name="photo" accept="image/*" required><br><br>
+                <div class="drop-zone" id="drop-zone">
+                    Drop photos here or click to select
+                    <input type="file" name="photos" id="file-input"
+                           accept="image/*" multiple hidden>
+                </div>
 
-                <button type="submit">Upload Photo</button>
+                <button type="submit">Upload</button>
 
-                <p style="color:red;">{error}</p>
+                <p id="status">{message}</p>
             </form>
         </div>
+
+        <script>
+            const dropZone = document.getElementById("drop-zone");
+            const fileInput = document.getElementById("file-input");
+
+            dropZone.onclick = () => fileInput.click();
+
+            dropZone.addEventListener("dragover", e => {{
+                e.preventDefault();
+                dropZone.classList.add("dragover");
+            }});
+
+            dropZone.addEventListener("dragleave", () => {{
+                dropZone.classList.remove("dragover");
+            }});
+
+            dropZone.addEventListener("drop", e => {{
+                e.preventDefault();
+                dropZone.classList.remove("dragover");
+                fileInput.files = e.dataTransfer.files;
+            }});
+
+            function showUploading() {{
+                document.getElementById("status").innerText = "⏳ Uploading...";
+            }}
+        </script>
 
     </body>
     </html>
