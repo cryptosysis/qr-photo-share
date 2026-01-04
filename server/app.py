@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory, request, redirect, session
 import os
 from datetime import datetime
 import qrcode
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret-key"
@@ -109,6 +110,82 @@ def categories():
     """
 
     return html
+
+# ---------Upload Code-----------
+
+
+ADMIN_PASSWORD = "12345@@"
+
+
+@app.route("/admin/upload", methods=["GET", "POST"])
+def admin_upload():
+    error = ""
+
+    if request.method == "POST":
+        password = request.form.get("password")
+        category = request.form.get("category")
+        file = request.files.get("photo")
+
+        if password != ADMIN_PASSWORD:
+            error = "Wrong admin password"
+
+        elif not file or file.filename == "":
+            error = "No file selected"
+
+        else:
+            filename = secure_filename(file.filename)
+            category_path = os.path.join(PHOTO_FOLDER, category)
+
+            if not os.path.exists(category_path):
+                error = "Invalid category"
+
+            else:
+                file.save(os.path.join(category_path, filename))
+                return f"<h2>Upload successful!</h2><a href='/categories'>Back to gallery</a>"
+
+    categories = [
+        f for f in os.listdir(PHOTO_FOLDER)
+        if os.path.isdir(os.path.join(PHOTO_FOLDER, f))
+    ]
+
+    options = "".join(
+        f"<option value='{c}'>{c.replace('_', ' ')}</option>"
+        for c in categories
+    )
+
+    return f"""
+    <html>
+    <head>
+        <title>Admin Upload</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+
+        <h1>Admin Upload</h1>
+        <p class="subtitle">Upload photos to a category</p>
+
+        <div class="container">
+            <form method="POST" enctype="multipart/form-data">
+
+                <input type="password" name="password"
+                       placeholder="Admin password" required><br><br>
+
+                <select name="category" required>
+                    {options}
+                </select><br><br>
+
+                <input type="file" name="photo" accept="image/*" required><br><br>
+
+                <button type="submit">Upload Photo</button>
+
+                <p style="color:red;">{error}</p>
+            </form>
+        </div>
+
+    </body>
+    </html>
+    """
+
 
 # -------- CATEGORY GALLERY --------
 
